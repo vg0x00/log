@@ -1,0 +1,88 @@
+* why use org mode instead Markdown format for this Log repository?
+
+- org mode has a better format control than Markdown
+- org mode is more friendly with my editor
+
+* org mode guide
+
+** Text format
+
+- /italic/
+- *bold*
+- _underline_
+- +strike through+
+- =inline code=
+- ~commands~
+- https://www.github.com
+
+** Code block
+
+- block
+: sample block
+
+some =inline block= here
+
+** Comment (not exported)
+
+#+BEGIN_COMMENT
+this comment will never exported
+this comment will never exported
+this comment will never exported
+#+END_COMMENT
+
+** Source code
+
+- python
+#+BEGIN_SRC python
+def hello():
+    print "hello world"
+#+END_SRC
+
+- golang
+#+BEGIN_SRC golang
+type Writer interface {
+    Write(body []byte) (int, error) 
+}
+#+END_SRC
+
+- c
+#+BEGIN_SRC c
+int main() {
+    printf("hello\n");
+    return 0;
+}
+#+END_SRC
+
+- bash
+#+BEGIN_SRC sh
+pwd
+#+END_SRC
+
+** Links
+#+BEGIN_SRC 
+[[https://www.github.com][github]]
+#+END_SRC
+
+[[https://www.github.com][github]]
+
+** Image
+
+[[https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png][file:image_ref]]
+
+inline_img: [[file:img][https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png]]
+
+** Table
+
+| *Name* | *Age* | *Job*   | *time*           |
+|--------+-------+---------+------------------|
+| lisi   |    20 | worker  | <2018-02-01 Thu> |
+| wangwu |    30 | teacher | <2018-02-01 Thu> |
+| xiazhi |    24 | worker  | <2018-02-01 Thu> |
+
+** Template shortcuts
+#+BEGIN_EXAMPLE
+insert time: C-c .
+<e : example
+<q : quote
+<l : LaTex
+#+END_EXAMPLE
