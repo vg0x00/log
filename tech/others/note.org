@@ -1,0 +1,17 @@
+* Note
+** bool type conversion in C language
+   bool AltKeyIsDown = LParam & (1 << 20);
+   
+   右侧表达式, 如果经过&位模式, 为真, 结果就是一个很大的数, compiler 将这个数再转换为Bool (0, 1), 
+   这一步转换我们是不关心的. 不必转换为0,1
+
+   可以这样:
+   #+BEGIN_SRC 
+   bool AltKeyIsDown = (LParam & (1 << 20)) != 0;   
+   #+END_SRC
+   
+   更简洁点:
+   #+BEGIN_SRC 
+   typedef int32_t bool32;
+   bool32 AltKeyIsDown = Lparam & (1 << 20);
+   #+END_SRC
