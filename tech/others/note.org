@@ -15,3 +15,19 @@
    typedef int32_t bool32;
    bool32 AltKeyIsDown = Lparam & (1 << 20);
    #+END_SRC
+
+** direct Sound API (OOP style) , you need a Window Handle, DUDE!
+
+   - include <dsound.h> header file
+   - Load Direct Sound Library
+   - if we load dsound library
+     - create directSound object (CreateDirectSound)
+     - create primary buffer (only used for configuration!!! a handle for sound device)
+     - do some settings on primary buffer
+     - create secondary buffer
+     - LOOP
+       - write to main buffer
+       - call play sound from direct sound object (OOP API)
+       - write to secondary buffer (real data buffer!!)
+
+   因为写入内存要消耗些时间, 写入位置相较实际播放cursor需要打个提前量.

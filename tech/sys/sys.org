@@ -1,0 +1,3 @@
+* sys log 
+** process state
+   [[file:img][https://github.com/vg0x00/log/blob/master/tech/sys/processor_state.png]]
