@@ -1,0 +1,49 @@
+* container intro
+
+  container 本身是一个process, 跟普通的应用程序没什么不同, 区别在于其作用. container 作用就是隔离,
+  打包.
+
+** container 能干嘛?
+  隔离, 打包, 便于部署和测试
+
+  试想: 搭建一个测试环境, 不用自己设置网络, 配置源, 配置软件, 设置服务
+  balabala.... 丢个镜像给你, 直接用命令启用就可以. 简版虚机.
+
+** container vs normal process
+  前面提到, container 就是一个普通的process, 那么和普通的process 的执行过程相同: 将文件从disk 中
+  载入到memory, 运送到CPU 中执行.
+
+  对于container 来讲, container image 就是充当 "process file" 的作用, 也就是运行态的镜像? 通过
+  载入这个镜像, 来获得运行环境.
+** container 包含什么?
+   - container engine
+
+     用于载入container image, 创建真正的container环境. 比较出名的: docker (此文之前, 我只了解过
+     golang 的docker, 没想还有很多container engine: Docker, Appc, LXD etc.)
+   - container image
+
+     running environment file
+   - container image format
+
+     各个container engine 都可以实现自己的image format, 会导致format 混乱, 大佬们就会站出来制定
+     个标准, 一统江湖: Open Container Initiative
+   - 跟git repository 概念类似, 提供镜像版本控制, 什么pull, commit, tag 之类, 一个套路.
+     当然在系统中需要添加对container repo 的信任(添加到white list)
+
+     container image repository
+
+** container 是如何创建的?
+   一般Linux process 创建通过系统调用: exec(), 裸露在kernel space中, 而container 是通过copy()
+   这个系统调用创建, 同样在kernel space中, 但是为这个新进程: container提供了namespace layer,实现
+   隔离.
+
+   [[file:img][https://github.com/vg0x00/log/blob/master/tech/sys/img/container_namespace.png]]
+   
+** container vs virtual machine
+
+   container 不具有kernel, 当然也不直接控制硬件. 所有syscall 都要转接到底层的kernel space 中执行
+   Linux Kernel 中syscall 在不同版本中增增减减, 如果image 中执行的syscall 在实际机器环境中, 已经
+   去掉或者更新了syscall interface, 那么,执行就会失败.
+
+   虚机就不同了, 他是一个完整的machine. 有独立的virtual device, kernel, 其实配置好了, 丢给开发者
+   virtual image 一样, 不过是文件大一点, 启动耗时一点. 但同时也保证了syscall 的一致.
