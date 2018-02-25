@@ -2,6 +2,8 @@
   
 ** Tech
   - mobile
+    - iOS
+      - [[https://github.com/vg0x00/log/blob/master/tech/mobile/iOS/design_pattern_in_cocoa.org][Cocoa design pattern]]<2018-02-25 Sun>
   - lan
   - db
   - net

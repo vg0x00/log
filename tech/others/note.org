@@ -26,8 +26,9 @@
      - do some settings on primary buffer
      - create secondary buffer
      - LOOP
-       - write to main buffer
+       - Lock dsound buffer (so, system will allow us to change dsound buffer)
        - call play sound from direct sound object (OOP API)
        - write to secondary buffer (real data buffer!!)
+       - Unlock dsound buffer
 
    因为写入内存要消耗些时间, 写入位置相较实际播放cursor需要打个提前量.

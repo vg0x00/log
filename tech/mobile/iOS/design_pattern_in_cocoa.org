@@ -1,0 +1,86 @@
+* design pattern in Cocoa  
+
+  所谓模式, 并不是指代算法, 而是一种代码便于管理和拓展的套路, 可以说是一种经验总结. 前阵子搂了眼golang
+  的设计模式, 有些模式感觉就是这个语言非常天然的形式, 比如composite 模式, 其中很多模式都是基于interface,
+  也就是接口这个protocol来实现. 现在体验下OOP下的设计模式.
+
+  其中一些模式名字似乎很奇怪, 比如什么facade, 也有一些让我觉得名字不符合实现, 比如observer, 我认为该
+  称它为Listener 模式.
+
+  设计模式在Cocoa 中的体现, 在没有了解设计模式之前, 就能感觉到, iOS 开发中那些"异样", 并不是平铺直叙
+  的书写代码, 这必然就是一种设计模式了. 例如什么dataSource, delegate, 有意思的是object的init() 
+  也是一种设计模式. alloc-init 模式? 经典MVC 也是模式之一. 还有will, should, did 之类的notification
+
+  觉得名字不合适, 那么使用自己认为合适的名字进行替代? 缺点就是不便于交流, Apple 向来都喜欢自己用一套词汇
+  进行描述, 
+
+  开篇来个笑梗:
+
+  #+BEGIN_QUOTE
+  Next time some kid shows up at my door asking for a code review, this is the book 
+  I am going to throw at him. It is a pity there is no hardcover edition.
+  #+END_QUOTE
+
+  希望了解Cocoa 模式, 能将Cocoa 内部组件串联起来.
+
+** MVC
+  似乎这是一个没有什么可说的基本套路, 将代码进行功能隔离, 最大限度的重用Model, 此模式个人认为最大的原因
+  在于View 和 Model 的改变频率, 特别是View, 如此分割, 并隔绝View, Model 之间的依赖, 实现decouple.
+
+  三个角色里, controller的任务似乎最为繁重, 需要bind view中的控件, 需要校验传入数据, 需要更改格式,
+  而iOS 又一般具有多个层级, 那么一个controller 需要控制多个View, 可见, controller在View数量多时,
+  会变得很臃肿.
+
+  为了便于测试, 把数据处理(format, check) 之类工作转移到view 中, 这样, 单独提供view 和测试数据, 
+  即可测试.
+
+** Foundamental Patterns (先挖坑, 慢慢填)
+*** Two-Stage<2018-02-25 Sun>
+    将对象创建分为两个阶段: memory allocation, value initialization
+
+    #+BEGIN_QUOTE
+    [Q] Cpp 中通过new 申请内存, 再通过constructor 执行value init? 推测如此. 毕竟constructor 
+    是支持over load
+    #+END_QUOTE
+
+    #+BEGIN_SRC 
+    [[someclass alloc] init]
+
+    void *p = alloc(sizeof(someclass)) // 这里返回void *, 没有类型信息在cocoa中也是一种模式--|
+    if (p) {
+       init with p with type conversion
+    }
+    #+END_SRC
+
+    - manage memory manually
+      引入了zone 这个概念, 这是干嘛的? 那得先了解下virtual memory
+
+      #+BEGIN_QUOTE
+      application faced: virtual memory ------  page table ------ physical memory 
+
+      其实就是两个表, 左边维护了程序使用的虚拟机内存和page table 中涉及到的page 之间的关系. 右表
+      维护了page table 与物理内存之间的关系. 当内存紧缺时, 系统就会选择page 复制到disk, 将这部分page
+      给那些需要内存的程序, 当转出的程序再次激活时, 将disk 中的page再复制到一个不同的Page中, 如果
+      内存不足, 依旧需要page out -> page in
+
+      为了避免一个task环节中, 出现page in, page out 的交替, 苹果搞出个zone 的概念, 把相关内存
+      绑定到一起, 成为in - out 的最小单元, 以此避免交替换入换出.
+      #+END_QUOTE
+
+    - 自动内存管理, 通过引用计数, zone 就被忽略了.
+    
+    开始, 想不出来设计alloc-init 两个过程的优势, 停下来假设了下, 一个类有不同的创建方法, 如果alloc, 
+    init 过程在一起, 那么每个creator 都要实现memory alloc 过程, 并且, 在子类实例化时, 每个creator
+    中也要包含memory alloc 的过程, 杂糅在一起.
+
+    如果分离开来, creator 不必理会对象创建与否, 直接进行属性赋值. 将内存创建过程转移到单独的init方法中,
+    这在单独类和子类中, 都可以收益.子类只需要先执行父类的init过程即可.
+*** Template
+*** Dynamic Creation
+*** Category
+*** Anonymous Type and Heterogeneous Container
+*** Enumerators
+*** Perform Selector and Delayed Perform
+*** Accessors
+*** Archiving and Unarchiving
+*** Copying
