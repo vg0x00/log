@@ -1,0 +1,32 @@
+* Apple identifier collections
+  - high price (maybe?)
+  - keyboard: command and option
+  - white lighting Apple logo on my laptop surface
+  - electric shock!!!
+  - useless thunderbolt 2 port on my Macbook Pro 2015
+  - (dev) save and load: archinving and unarchiving in storyBoard
+  - (dev) show and hide(close): show dismiss
+  - (dev) show and hide (using navigation controller): push and pop
+  - (dev) show and kill view controller in storyBoard: segue and unwind
+  - (dev) Xcode some times too buggy :(
+  - (dev) assets.xcassets: xc -> Xcode
+
+* xCode shortcut
+  - command + alt + l: filter in object liberary
+  - navigation in utilities
+    - command + option + alt + 1,2,3,4
+  - command + enter: open normal editor
+  - command + option + enter: open assitant editor
+  - command + shift + 0: open document helper
+  - command + 0: show/hide left panel
+  - command + option + 0: show/hide right panel
+  - command + shift + y: show/hide debug area
+  - command + shift + o: quick open
+  - command + ': next quick fix position
+  - command + 1: project navigator
+  - command + r: run
+  - command + .: stop
+  - ctrl + i: indent
+  - esc: show auto complete
+  - command + /: comment / uncomment
+  - command + =: size to fit

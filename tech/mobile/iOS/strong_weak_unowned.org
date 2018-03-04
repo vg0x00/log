@@ -1,0 +1,138 @@
+* strong weak unowned
+
+  back to the C language world: pointer
+ 
+  - calling on valid pointer is correct
+  - calling on invalid pointer cause unexpected result or error (segment fault?)
+  - free pointer which has freed before would cause error.
+
+  all these errors based on memory managed by hand. so Swift use automaic memory 
+  management, it's not real "automatic" cause we set some strategy in advance.
+
+  the "automatic" strategy is called: "ARC" - automatic reference counting.
+  
+#+BEGIN_EXAMPLE
+   A --> B ( B's reference counter +1: 1)
+   C --> B ( B's reference counter +1: 2)
+   A = nil ( B's reference counter -1: 1)
+   C = nil ( C's reference counter -1: 0) --> B is removed from memory.
+#+END_EXAMPLE
+
+当B对象的reference couting 值为0时, 就在内存中剔除这个对象.
+
+默认的关联关系级别就是strong, 例如在controller中的properties
+
+#+BEGIN_SRC swift
+class MainViewController: UIViewController {
+    var name: String = "hello" // strong reference by default
+}
+#+END_SRC
+
+如果MainViewController 消失了, 那么name 也就消失了. 因为name唯一的strong reference 就是
+MainViewController.
+
+但是, 如果对象之间存在互相refer 关系时:
+
+#+BEGIN_SRC Swift
+class Parent {
+    var child: Child?
+
+    // init ...
+}
+
+class Child {
+    var parent: Parent?
+
+    // init ...
+}
+
+       >>>>>> strong >>>>> 
+Parent                     Child
+       <<<<<< strong <<<<<
+#+END_SRC
+
+两者之间互为strong reference, 在一方消除时, 有另一方引用本身, 阻止了本身的deinit. 
+大量发生时, 就会发生memory leak.(像不像某些病毒或者病毒卫士的自我防卫机制)
+
+如何解决这种互相关联的strong reference (ratain cycles)呢? swift 引入了weak 和unowned
+
+weak 不会增加reference counting number, 可以被设置为nil, 所以weak 变量都是optional, 就这样.
+
+unowned 同样不会增加reference coutning number, 但这个引用不会为nil
+
+两者都是基于optional 这个特性.
+
+#+BEGIN_SRC swift
+class Parent {
+    weak var child: Child? // all weak varaible is optional
+
+    // init ...
+}
+
+class Child {
+    var parent: Parent?
+
+    // init ...
+}
+
+       >>>>>> weak >>>>> 
+Parent                     Child
+       <<<<<< strong <<<<<
+
+// create child, parent ...
+
+child = nil
+parent = nil
+
+#+END_SRC
+
+child = nil 在先, 由于parent 未持有child 的strong reference, child对象rfc = 0; child deinit
+child deinit 之后, 其持有的对parent 的strong reference 也就不存在, 此时parent deinit
+
+类似的, 如果parent = nil 在先, child = nil 在后, 由于child 持有对parent 的strong ref, 所以
+此时parent不会deinit, 在child = nil 之后, 这个strong ref 消失时, 其rfc = 0, parent 才被deinit
+
+weak 和 unowned 更多是用在closure 身上
+
+#+BEGIN_SRC swift
+class Main {
+    var name: String
+    let closure = { self.name = "liiii" }
+
+    // init ...
+}
+#+END_SRC
+
+默认情况下, closure 内对其block 外部变量的引用都是对其的strong ref, 此时, 同样会出现互相引用导致
+两者都不能释放的现象. 这时, 在capture 中设置对self的引用是weak 的, 就打破了互相引用关系, 和前面的
+parent - child 例子一样
+
+#+BEGIN_SRC swift
+class Main {
+    var name: String
+    let closure= { [weak self] in self.name = "liiii" }
+
+    // init ...
+}
+
+Main >>>>> strong >>>>> closure
+     <<<<<  weak  <<<<< 
+#+END_SRC
+
+那么什么时候用unowned 呢? 就是两者绑定在一起, 同生共死.
+
+#+BEGIN_SRC swift
+class Main {
+    var name: String = "hello"
+    var closure: ((void) -> Void)! // not optional !!!
+    init() {
+        closure = { [unowned self] self.name = "hello, world!!!" }
+    }
+}
+#+END_SRC
+
+** 总结
+
+- strong.修改rfc, 防止对被加持strong ref的对象进行销毁
+- weak 不修改rfc, 但这个引用可以在runtime 设置为Nil
+- unowned 不修改rfc, 这个引用总为nil
