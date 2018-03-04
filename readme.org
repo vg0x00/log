@@ -4,6 +4,8 @@
   - mobile
     - iOS
       - [[https://github.com/vg0x00/log/blob/master/tech/mobile/iOS/design_pattern_in_cocoa.org][Cocoa design pattern]]<2018-02-25 Sun>
+      - [[https://github.com/vg0x00/log/blob/master/tech/mobile/iOS/strong_weak_unowned.org][strong_weak_unowned in Swift]]<2018-03-04 Sun>
+      - [[https://github.com/vg0x00/log/blob/master/tech/mobile/iOS/design_pattern_in_cocoa.org][design pattern in Cocoa]]<2018-03-04 Sun>
   - lan
   - db
   - net
