@@ -103,9 +103,11 @@ class Main {
 }
 #+END_SRC
 
-默认情况下, closure 内对其block 外部变量的引用都是对其的strong ref, 此时, 同样会出现互相引用导致
+closure 和class 一样, 都是reference type, 与上面例子两个class 之间存在互相strong ref 的情况
+相同, 含有closure 也可以存在strong ref cycle, closure 内对其block 外部变量的引用都是对其的strong ref, 此时, 同样会出现互相引用导致
 两者都不能释放的现象. 这时, 在capture 中设置对self的引用是weak 的, 就打破了互相引用关系, 和前面的
-parent - child 例子一样
+parent - child 例子一样, 只不过这里的weak/unowned 关键字添加的位置不是在class properties, 而是
+在closure capture list 中设置.
 
 #+BEGIN_SRC swift
 class Main {
@@ -122,17 +124,19 @@ Main >>>>> strong >>>>> closure
 那么什么时候用unowned 呢? 就是两者绑定在一起, 同生共死.
 
 #+BEGIN_SRC swift
-class Main {
-    var name: String = "hello"
+class Life {
+    var work: String?
     var closure: ((void) -> Void)! // not optional !!!
     init() {
-        closure = { [unowned self] self.name = "hello, world!!!" }
+        closure = { [unowned self] self.name = "happy hacking!!!" }
     }
 }
+
+// 生命不息, hacking 不止. 奠....
 #+END_SRC
 
 ** 总结
 
 - strong.修改rfc, 防止对被加持strong ref的对象进行销毁
-- weak 不修改rfc, 但这个引用可以在runtime 设置为Nil
-- unowned 不修改rfc, 这个引用总为nil
+- weak 不修改rfc, 但这个引用可以在runtime 设置为nil
+- unowned 不修改rfc, rfc 在runtime 中不对其设置为nil, 也就是和宿主共生死.
