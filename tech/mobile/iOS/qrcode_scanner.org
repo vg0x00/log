@@ -1,0 +1,123 @@
+* QR Code scanner
+
+  QR code 的识别已经是一些类型的APP的标配了. 今天来瞧瞧QRcode scanner 如何实现.
+
+  使用iOS 提供的API, 不必自己实现QRCode 识别的过程. 只需要构建几个对象, 调用API识别出的对象, 将对象
+  中解析出来的信息加以利用就可以了.
+
+  此时, 如果把QR code scanner 想象成一个black box, input data 就是QRCode image, output data
+  就是从QRCode 中解析出来的信息.
+
+  #+BEGIN_SRC 
+  input data{ QRcode image } ----->  QRCodeScanner{ black box } ----> content { string }
+  #+END_SRC
+
+** inner QRCode Scanner
+   现在进入QRCodeScanner 内部看看, 回忆下一些熟悉的客户端里在使用扫码是是什么样子
+   
+   - 似乎是开启了视频模式, 只是没有拍摄
+   - 将手机相机对准二维码, 屏幕中识别出二维码, 并对其添加绿色的框, 加以提示.
+   - 得到二维码的信息, 结束扫码过程.
+
+   而实际的实现过程也是类似, 主要涉及的对象:
+   - capture session object (capture qrcode and transform to output metadata)
+   - capture preview layer (show video camera on screen)
+   - qrcode box indicator (UIView)
+
+   capture session object 需要capture device input, 而这个input 是由capture device 提供.
+   创建一个outputMetaObject, 设置好要capture 的类型, 将他设置到session object中, 通过delegate
+   接收capture 状态改变的信息.
+
+   当检测到了QRcode 之后, 通过videoPreviewLayer.transformedMetadataObject(qrTypeMetaObject)
+   得到qrcode  info object, 继而通过其属性, stringValue 得到QRCode 内包含的信息.
+
+** code sample
+#+BEGIN_SRC swift
+import UIKit
+import AVFoundation // for QRCode Scanner
+
+class QRCodeScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        // Do any additional setup after loading the view.
+        setCaptureSession()
+    }
+
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
+    }
+
+    // MARK: Initializations
+    // MARK: Properties
+    var captureSession: AVCaptureSession?
+    var videoPreviewLayer: AVCaptureVideoPreviewLayer?
+    var qrCodeFrameView: UIView?
+    // MARK: Outlets
+    @IBOutlet weak var messageLabel: UILabel!
+    // MARK: Actions
+    // MARK: Navigation
+    // MARK: Delegate methods
+    func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+        if metadataObjects.count == 0 {
+            qrCodeFrameView?.frame = .zero
+            messageLabel.text = "no qrcode foudn"
+            return
+        } else {
+            if let metaObject = metadataObjects.first as? AVMetadataMachineReadableCodeObject {
+                if metaObject.type == .qr {
+                    let barCodeObject = videoPreviewLayer?.transformedMetadataObject(for: metaObject)
+                    // 检测到qrcode 之后, 将提示框的frame 更新为qrcode object 的bounds
+                    qrCodeFrameView?.frame = barCodeObject!.bounds
+                    if metaObject.stringValue != nil {
+                        messageLabel.text = metaObject.stringValue
+                        print("message: \(metaObject.stringValue)")
+                    }
+                }
+            }
+        }
+    }
+    // MARK: Private methods
+    private func setCaptureSession() {
+        let captureDevice = AVCaptureDevice.default(for: .video)
+        do {
+
+            // 创建session object
+            let captureInput = try AVCaptureDeviceInput(device: captureDevice!)
+            captureSession = AVCaptureSession()
+            captureSession?.addInput(captureInput)
+            
+            let captureMetadataOutput  = AVCaptureMetadataOutput()
+            captureSession?.addOutput(captureMetadataOutput)
+            
+            // 设置执行delegate 到main dispatch queue (需要更新view 嘛) 
+            captureMetadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
+            captureMetadataOutput.metadataObjectTypes = [.qr] // captureOutput type
+            
+            videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession!)
+            videoPreviewLayer?.videoGravity = AVLayerVideoGravity.resizeAspectFill
+            videoPreviewLayer?.frame = view.layer.bounds
+            view.layer.addSublayer(videoPreviewLayer!)
+            
+            captureSession?.startRunning()
+            
+            view.bringSubview(toFront: messageLabel)
+        } catch {
+            print(error)
+            return
+        }
+        
+        qrCodeFrameView = UIView() // 这就是那个绿色的提示框, init size = zero
+        if let qrCodeFrameView = qrCodeFrameView {
+            qrCodeFrameView.layer.borderColor = UIColor.green.cgColor
+            qrCodeFrameView.layer.borderWidth = 2
+            view.addSubview(qrCodeFrameView)
+            view.bringSubview(toFront: qrCodeFrameView)
+        }
+
+    }
+}
+
+#+END_SRC

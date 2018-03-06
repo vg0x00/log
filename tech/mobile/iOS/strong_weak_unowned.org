@@ -64,7 +64,7 @@ unowned 同样不会增加reference coutning number, 但这个引用不会为nil
 
 #+BEGIN_SRC swift
 class Parent {
-    weak var child: Child? // all weak varaible is optional
+    weak var child: Child? // all weak varaible  is optional
 
     // init ...
 }
