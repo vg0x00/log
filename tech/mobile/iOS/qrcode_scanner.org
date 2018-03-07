@@ -20,8 +20,9 @@
    - 得到二维码的信息, 结束扫码过程.
 
    而实际的实现过程也是类似, 主要涉及的对象:
-   - capture session object (capture qrcode and transform to output metadata)
-   - capture preview layer (show video camera on screen)
+   - capture input { AVCaptureDeviceInput }
+   - capture session object (data flow from input to output) { AVCaptureSession }
+   - capture preview layer (show video camera on screen) { AVCaptureVideoPreview }
    - qrcode box indicator (UIView)
 
    capture session object 需要capture device input, 而这个input 是由capture device 提供.

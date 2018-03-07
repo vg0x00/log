@@ -1,0 +1,56 @@
+* iOS content hugging and compression resistance in Autolayout engine
+
+  曾经乔布斯时代的iPhone 手机一直是坚守小屏幕的, 认为那才是人类最为舒适的持握和阅读体验方案. 
+  并祭出大屏设备iPad (其实, 我认为iPad 就是ipod touch 的替换产物, 那个不能打电话的手机...)
+  后来随着Android 大屏时代的到来, Tim Cook 时代的Apple 也加入了大屏队列, iPhone 5, 5s, 5c, se
+  这些中屏幕的试水, 到iPhone 6 以及之后的iPhone x Plus. (个人体验还是屏幕不要太大为好, 当然市场
+  会修正人们的这种工程师观念)
+
+  手机屏幕尺寸多了, 那么程序开发的适配工作就繁杂了, 也许iPhone 4 那会布局都是直接把每个view 的frame
+  写成fixed size and position, 屏幕尺寸多种类时代到来后, 我想最初阶段的开发者还是沿用之前的套路, 
+  只不过在布局时, 多几个if else,以此区分不同尺寸屏幕的UI设计. 之后, Apple 搞出个autolayout engine, 
+  只需要设定UI item 布局策略, autolayout engine 会根据这些策略生成item frame size and position 
+  info , 同时, 重复render cycle, 在constraint 更新之后, 会在下一个render cycle 更新UI, 实现了
+  在runtime 更新UI布局当然, 对UI设置的策略也不是都符合autolayout engine 的要求, 致使他不能给出正确
+  且唯一的layout. 基本原因: 
+  
+  - 限制信息不够 (ambiguous layout) (more or less)
+    - less: 添加更多的constraint
+    - more: 告诉autolayout engine 优先级:
+      设定 constraint priority, 让autolayout engine 在runtime 根据priority自己
+      决定该break 哪个constraint (DaDa! 标题所在!)(runtime solution)
+  - 限制信息之间互相冲突, 二者不能同时满足  (unsatisfiable layout) conflicting constraint
+    - 解决思路: 定位要冲突的constarint, 去掉导致冲突的constraint 之一 (static solution)
+
+** intro
+   一个view 如何唯一确定自己的UI 呈现呢? 需要两个信息, position and size.
+   - position point{x, y}
+   - size: { width, height }
+*** intrinsic size --> size { intrinsic size }
+    view 根据自己content 来产生的size info, 例如lable 根据text 属性得到的size, UIImageView根据
+    image size 得到的size, 这些content based size 就是intrinsic size, 而他会影响UI layout 的
+    实际效果.
+*** content hugging 
+    当view 提供的constraint 有冲突时, 可以设置其中的关键constraint priority 为optional 
+    (< 1000), layout engine 就知道冲突时, 该break 哪个constriant
+
+    当view constraint 不足时, 提供constriant priority, 让layout engine 进行调整.
+
+    说来content hugging, 指view 本身希望intrnsic size 在需要拉伸时却保持不变的意向. 这说起来有点赋予
+    view 一些意识主体的感觉. view 大小不足以铺满container 时, layout engine 就会想将view 进行拉伸.
+    view 本身抵制这种外在力量弱的自然就会被拉伸, 也就是低content hugging 的View被拉伸. 如同
+    拔河, 不得不说, Design by Apple in California. 是有些个性.
+    
+    当然, 两个view 本身各自的content hugging value 本身是多少并没有什么意义, 关键是在需要比较时, 
+    谁大谁小, 能得到优先级才是关键.
+    
+*** content compression resistance
+    和上面的content hugging 差不多, 当view intrinsic size 太大, 在container 中放不下时, 就需要
+    选择其中一个进行压缩, 而这个content compression resistance 值就表示了抵抗layout engine 对
+    自身压缩的意愿, 当然, 这种意愿低的被优先压缩. 
+
+    两者各自的compression resistance 绝对值同样没有意义,只需要比较出优先关系即可.
+
+** 最后
+   初看content hugging 和 compression resistance很蒙圈并不是其solution 如何复杂, 而是两个属性含义本身, 
+   带给人的困惑, Apple design 还是挺特别的.
