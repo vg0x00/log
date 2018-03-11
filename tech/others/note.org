@@ -32,3 +32,42 @@
        - Unlock dsound buffer
 
    因为写入内存要消耗些时间, 写入位置相较实际播放cursor需要打个提前量.
+
+** compare with CFL and layout anchor in iOS with Swift<2018-03-11 Sun>
+
+#+BEGIN_SRC swift
+   button.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = trues
+   button.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+#+END_SRC
+
+VFL version: 
+
+#+BEGIN_SRC swift
+   view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[button(==200)]-(<=1)-[container]", options: [.alignAllCenterX], metrics: nil, views: ["button": button, "container": view]))
+   view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[button(==200)]-(<=1)-[container]", options: [.alignAllCenterY], metrics: nil, views: ["button": button, "container": view]))
+#+END_SRC
+
+利用option 中指定的alignAllCenterX|Y 指定layout constraint, 在VFL 中指定了一个container view 来
+引用superView, 如果单纯使用 |- 的形式, 不会被option 中的alignAllCenterX|Y 作用.
+
+比较有意思的是这里的"<=1", 从代码中和实际的效果出来, 可以推测, 这里的数值并不是指代两个view position point 
+的offset, 因为offset 将永远为非负数, 这里的值应该就是leftView.point.x - rightView.point.x 得到的. 从而在两个
+view 相交时出现负值情况.
+
+VFL version 2:
+
+#+BEGIN_SRC swift
+   view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[container]-(<=0)-[button(200)]", options: [.alignAllCenterX], metrics: nil, views: ["button": button, "container": view]))
+   view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[container]-(<=0)-[button(200)]", options: [.alignAllCenterY], metrics: nil, views: ["button": button, "container": view]))
+#+END_SRC
+
+在version 2 版本中, 将那个magic number 改为了0, 实测中也验证了猜想, 得到了正确的UI
+
+VFL 似乎是很早的解决方案, 现在高出个什么anchor, 看起来比VFL 简洁了点. 但VFL 可以直接同时设置多个view.
+
+subview 需要在superView 的关系链中才能添加constraint, 所以把关于constraint setting 放在viewDidLoad?
+还是viewWillApear 中? 看stackOverFlow 中, 解答都可以.
+
+只是目前VFL 还不能结合safeLayoutGuide
+
+其实, 都不如interface builder 中设置来的便捷.
