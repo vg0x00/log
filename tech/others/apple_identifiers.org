@@ -27,6 +27,16 @@
   - command + r: run
   - command + .: stop
   - ctrl + i: indent
-  - esc: show auto complete
+  - esc: show/hide auto complete
   - command + /: comment / uncomment
   - command + =: size to fit
+  
+
+  - ctrl + 6: jump to symbols or methods
+  - ctrl + shift + command + H: find caller hierarchy
+  - shift + command + o: quick open file with input filter
+  - ctrl + 5: open file in project (this is faster than the upper one)
+  - command + control + up-arrow: jump between header and implmentation file.
+  - command + shift + 0: open xCode document panel
+
+  why xCode can not jump between blank lines, I want a faster way navigation method!
