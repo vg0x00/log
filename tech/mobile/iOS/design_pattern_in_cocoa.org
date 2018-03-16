@@ -75,7 +75,50 @@
 
     如果分离开来, creator 不必理会对象创建与否, 直接进行属性赋值. 将内存创建过程转移到单独的init方法中,
     这在单独类和子类中, 都可以收益.子类只需要先执行父类的init过程即可.
-*** Template
+*** Template<2018-03-16 Fri>
+    就是把主要的执行路径和方法都写好了, 让这部分作为一个框架, 为了提供更多的灵活性, 提前设定好接口, 让接入
+    的代码来实现这些预设接口, rumtime 执行逻辑就会调用用户填写的逻辑.  当然这是procedure programming 
+    的说法, 如果换成OOP, 那么通过接口调用, 或者override superclass 的方法也达到了一样的效果. 
+
+    running procedure
+    #+BEGIN_SRC 
+    main path ------+                 +------- main path contine ------
+                    |                 |
+                    |                 |
+                    + user part code  +
+    #+END_SRC
+    
+    main path resuable ---> max 
+
+    方法: 
+    - 将逻辑抽象出function calling process, 并分析哪些部分是fixed, 哪些是dynamic 的.
+    - 把灵活的部分设定为template Method,
+    - 做好文档, 那些需要实现这些template method 的必要度: must? optional? 
+
+    cocoa 的例子: drawRect
+    
+    cocoa 发送 display message  给contained view. 告知每个sub view 自己的portion. 用于后面的
+    drawRect clipping. 每个view 再向自己的subview 传递 display 消息. 后出发其sub view 的drawRect
+    
+    那么, 只要custom view 继承NSView, 并override 基类的drawRect 即可. 不要直接调用此方法, 这样那些
+    cocoa 画view 的必要步骤会被省略. 可以手动call setNeedDisplay 方法, 告诉cocoa 
+
+    之前觉得这个setNeedDisplay 有点奇怪, 这下明朗多了.
+
+    共性就是这个template method 并不是开发者调用, 而是在main running procedure 中调用.
+
+    如果在文档里写了 subcclass should override this method to .... must call superclass's method
+    又或者optional to override this method in subclass 之类的提示, 那么template method 无疑.
+
+    需要在文档中寻找到以下信息: 
+    - 为什么要override 这个方法, why and what?
+    - 子类Must / should override 这个方法? why?
+    - 必须调用父类的此方法? why? 
+
+    这种模式的难度我看更多是在继承之后, 对后续子类的维护, 需要追溯superclass 对这个方法的说明. 同时, 也保
+    持了父类和子类之间的coupling. 那么如何decouple 呢, 采用问答模式吧, delegate pattern. 我认为是
+    一种接口编程. main path 设定好 protocol, 调用者创建一个实现此protocol 的实例, 提供了main path
+    需要的信息, 将这个对象以插入到main path 中. 这样, 那种继承而来的层级关系就变成了平面关系.
 *** Dynamic Creation
 *** Category
 *** Anonymous Type and Heterogeneous Container
