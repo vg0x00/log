@@ -71,3 +71,100 @@ subview 需要在superView 的关系链中才能添加constraint, 所以把关�
 只是目前VFL 还不能结合safeLayoutGuide
 
 其实, 都不如interface builder 中设置来的便捷.
+
+** 跨平台代码的组织方式 in c language domain <2018-03-17 Sat>
+
+方法一: preprocessor style (bad way)
+
+#+BEGIN_SRC c
+#if _Win32
+// some win32 code here
+#elif _Linux
+// linux code here
+#elif _MACOS
+// macos code here
+#endif
+#+END_SRC
+
+在代码管理时看到的是: 
+#+BEGIN_SRC 
+                     +----- win32 impl-----\               +----- win32 impl-----\
+                     |                     |               |                     |
+main path >>>> funcA +----- linux impl-----+-----func B ---+----- linux impl-----+>>>>>> 
+                     |                     |               |                     |
+                     |----- macos impl ----/               |----- macos impl ----/
+#+END_SRC
+缺点: 
+
+- 将这种分支结构穿插在任何需要system level 接口的地方
+- 不好的地方即使一个方法中可能充斥着#if #esif #endif
+- 使用这种模式, 会导致所有支持的platform 的代码逻辑是shared, 不同的system 提供的接口和相关步骤也是不同的,
+  比如: 要在程序后台载入一个资源, system A 可能是通过thread 实现, system B 可能通过复用IO实现, 但同时
+  伴随的event handling 和 message passing and receiving 也会不同. 会陷入如何把这些system layer 
+  code 束缚到统一的执行路径的谜潭. 
+
+方法二: 将system layer 代码归置在一起, 共享一个haeder file
+
+目录结构:
+
+#+BEGIN_SRC 
+/ +
+  /general_system_header
+  /linux_code
+    /linux_file1.cpp
+    /linux_file2.cpp
+    /linux_file3.cpp
+  /win32_code
+    /win32_file1.cpp
+    /win32_file2.cpp
+  /macos_code
+    /macos_file1.cpp
+    /macos_file2.cpp
+#+END_SRC
+
+设计好程序内需要的与system layer 相关的API (如file, io, network, thread), 组织到统一的header file
+中, 平台无关代码调用这个shared header, 在编译时, 根据平台不同, 更改参与编译的是linux_code 还是win32_code
+又或者是macos_code 内的文件
+
+例如: 
+#+BEGIN_SRC 
+// for wid32 platform:
+windows_compiler main.cpp win32_code/win32*.cpp
+
+// for linux platform:
+linux_comoiler main.cpp linux_code/linux*.cpp
+
+// for macos:
+macos_compiler main.cpp macos_code/macos*.cpp
+#+END_SRC
+
+方法二改进版: 
+
+改进之处就是把关于system related operation 抽象出来, 形成一个none platform layer, 并将其插入到主程序
+中
+
+结构如图: 
+#+BEGIN_SRC 
+{ file: game_main.cpp
+>>>> #include "platform_layer.cpp"
+>>>> MainLoop();
+>>>> CloseMainLoop();
+}
+
+{file: platform_layer.cpp
+>>> #include "platform_layer_header.h" optional, if you include all implements in advance
+>>> void Mainloop {
+>>> >>> window_type *window = platform_create_window("window title");
+>>> >>> sound_device_type *sound_device = platform_create_sound_device();
+>>> }
+}
+
+{file: win32_*.cpp
+// show to create window in win32 platform
+}
+
+这样编译时还需要指定platform layer code: compiler main.cpp win32_*.cpp -l libs
+
+原文中, 将Platform layer 相关的实现都放在一个main.cpp 这个文件中, 毕竟整个程序也是基于平台创建的.
+好处就是在编译时, 是需要compiler main.cpp some_libs_here 即可. 编译更快.
+#+END_SRC
