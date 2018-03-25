@@ -1,0 +1,43 @@
+* dependency injection -> storyboard 
+  
+
+** 为什么要denpendency injection - 解耦
+   什么是耦合?
+   
+   为了更好的解释, 构建一个场景: 一个人, 活下去, 需要吃"可乐鸡翅"
+   
+   人和"可乐鸡翅"就是耦合关系, 人只有吃饭才能生存. 如果"可乐鸡翅"的一部分改了, 由于这种强依赖关系, 人也很大程度
+   上需要跟进修改. 随后人口味变了, 将"可乐鸡翅" 换成了"麻辣鸡丝", 需要同时更改"麻辣鸡丝" 和 "人", 需要
+   修改的属性有一处, 但是需要修改的地方却包含了本身及被应用的地方, 不想这样, 怎么办? 解耦!打破这种强关联关系.
+
+   如何解耦?
+   
+   - property setter { init, setter, interface method }
+
+     相比原来将fixed style 依赖. 这种动态式的依赖将对象创建过程转移到外部. 并通过init, setter, 包含
+     接口参数的方法来获取这个依赖. 插入到调用层. 这个过程被称为: dependency injection.
+   - abstract layer -> factory, creator etc.
+     工厂模式, 在需要依赖的地方, 用如下形式来获取对象引用:
+#+BEGIN_SRC 
+    var dependencyObj = FoodObjectFactory.get(.malaji) // static method
+#+END_SRC
+   
+   dependency injection 只是解耦方式的一种. storyboard 实现dependency injection 就是实现之一.
+
+** 如何用storyboard 来实现depenency injection
+   - 创建cocoa custom class: CustomClass: NSObject, 这个基类NSObject 很关键, 后续可以通过Storyboard 进行实例化.
+   - 在storyboard 托个object 到controller 中.并指定该object class为刚才创建的class
+   - bind storyboard obj 和 class reference.
+     - 可以使用asstance editor 通过ctrl drag 的方式
+     - 可以在controller 中写入 @IBoutlet var varName: VarType! 之后再storyboard 中关联.
+** IoC 控制反转
+   将依赖对象的创建过程外移, 交由第三方来管理. 这种思路就是IoC, 反转表示当前对象创建的控制由原来在调用方
+   转移到了第三方. storyboard 的这种对象注入方式就是IoC 的一种体现.
+
+   其实, 整个storyboard 的实现就是IoC 的体现, 所有的item 和 constrinat 都是通过xml 的方式记录, 在程序
+   载入时通过injector 读取并实例化对象(archiving and unarchiving), inject 到applicationMain 中.
+   
+   storyboard 的模式核心就是factory,只不过在object getter() 方法中调用了xml parser
+
+   这种通过解析配置文件再创建对象的过程必须包含了对配置文件的载入和解析过程. 如果将解析过程省去的话, 用类的
+   bit code 来生成对象, 例如: injector.create(CustomClass.class). Java 中好像就是这么干的.
