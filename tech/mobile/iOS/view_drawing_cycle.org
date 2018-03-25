@@ -1,0 +1,16 @@
+* view drawing and life cycle.
+  
+  view 并不是像game 一样, 每一次都render 一次frame, 然后显示. 为了节约计算资源, iOS 的策略是cache.
+  
+  这个cache 在未收到cache 失效之前. 会一直显示这个cahce.
+  
+  一图胜千言:
+
+  [[file:img/view_display_and_life_cycle.png]]
+  
+  伴随事件的解释:
+  - viewDidLoad: 加载view 资源. 可能在整个app 周期内被加载多次.
+  - viewWillAppear: 将view 添加到了view hierarchy. 也就是将view 添加到了view tree 中.同样可能被执行多次.
+  - viewDidAppear: 此时view 状态为visible
+  - viewWillLayoutSubview: view bounds 更改.并即将layout subview (废话)
+  - viewDidLayoutSubview: 执行完layoutSubviews 
