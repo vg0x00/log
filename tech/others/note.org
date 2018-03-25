@@ -168,3 +168,119 @@ macos_compiler main.cpp macos_code/macos*.cpp
 原文中, 将Platform layer 相关的实现都放在一个main.cpp 这个文件中, 毕竟整个程序也是基于平台创建的.
 好处就是在编译时, 是需要compiler main.cpp some_libs_here 即可. 编译更快.
 #+END_SRC
+
+** iOS application extension guide log<2018-03-20 Tue>
+
+- container app { extension 1, extension 2, extension 3.... }
+- 根据需求往iOS 提供的预设extension point 上靠, 为了保持用户交互的一致性, 保持UI与系统UI一致
+- 提供enable/disable 接口
+
+how extension work?
+
+- host app and containing app:
+  host app 就是触发这个extension 的app, 而containing app 是安装这个extension 的载体.
+- life cycle: 
+#+BEGIN_SRC 
+  host app 触发extension -> 加载extension --> 执行extension ---> end extension -> 返回host
+#+END_SRC
+- message communication
+#+BEGIN_SRC 
+  host app -- request/response --- extension
+  extension -- ??? containing app 两者之间很少交换信息, 通过extensino point 中的api 实现.(openURL)
+#+END_SRC
+- extension API 上有限制.
+
+必须是64{iOS, MACOS} 才会被AppStore 接受!!!
+
+** iOS VPN (需要join Apple developer)<2018-03-20 Tue>
+packet levle:
+- custom VPN protocol -> NEPacketTunnelProvider
+- create configuration and use your custom VPN protocol provider - NETunnelProviderManager
+
+application level:
+- create a application layer proxy - NEAppProxyProvider
+- create configuration and use your custom application layer proxy - NEAppProxyProviderMananger
+
+content filter:
+- content filter on device - NEFilterControlProvider and NEFillterDataProvider
+- manage filter services - NEFilterManager
+
+** Networking in iOS <2018-03-20 Tue>
+一些名词: host, infrastrue device, router, switches, packet
+
+packet 结构:
+TCP packet:
+{
+    ip header; // where to send
+    tcp Header; // checksum of payload data
+    tcp payload; // actual data
+}
+
+*** networking layer
+#+BEGIN_SRC 
+link(physical) >>> ip >>> TCP/UDP >>> application
+#+END_SRC
+
+link { WIFI, celluar, ethernet, bluetooth, fireware? } route, switches(connection between host)
+     with different MTU
+
+ip { abstract ip layer, hide diff MTU, divide packets into fragementation }
+
+为了屏蔽link layer 的MTU 的差异, ip 在source 端将packet 分割为fragemntation, 在接收端进行拼装.
+这个分割-组装的操作是作用于每一个packet.
+
+不如MTU 为1000 byte, 发送一个packet 大小为1500 byte, 那么在ip 层就会将这个Packet 分割为两个fragmentation,
+一个1000 byte, 另一个500 byte, 仅在ip层考虑, 如果任何一个fragmentation 丢失, 那么这个packet 就失效.
+再者, 发送时间是根据发送的信息量决定, 也就是packet 个数*大小, 而期间分割为多少个fragmentation 没什么关系,
+反而在网络不好的情况下, 导致fragmentation 丢失而导致整个包失效. 
+
+为了尽量避免fragment 分割, 和解决丢包之后的重传, 又在ip 基础之上假设了一个新的layer: TCP/UDP layer
+
+transport layer: TCP/UDP { 探测传递路线的MTU, 并找到其中最小的MTU 就是最大传输速度, 也就是带宽了 }
+
+port: 就是为了复用同一个ip, 提供更多的service
+
+UDP 特性较之TCP少了很多: 保证顺序, 保证务必送到, 保证不重复. 因为其不要connection, 所以可以broadcast,
+
+TCP/UDP 依赖ICMP, 报告链接是否正常
+
+再继续构建就是application layer: HTTP, FTP ...
+
+*** Latency
+latency 就是发送包, 接收端回传确认包, 最后发送端收到确信信息的整个时间耗时.
+
+不考虑网络因素, 延迟就是传输距离 / 船速速度
+
+但其间的router 也有可能在接收一定数量的packet 之后, 再转发, 这个等待buffer 填满的过程就产生了延迟时间.
+这种延迟随着线路上有这种特性的router 数量增加而增加
+另一个因素可能是丢包之后导致的重传
+
+*** addressing schemes 
+
+link layer: 各种MAC地址, bluetooth 的device id, GSM cellular 的IMIE, CDMA 的ESN. 实际接收
+信号的设备就是靠这些具有标识作用的ID 来进行过滤. 试想, 在两个点之间传递信息不需要这些id 来区分个体.
+
+ip layer: {ipV4(32bits), ipv6(128bit)}
+
+DNS: ip address <----> domain system, 分层次, root domain -> general domain -> sub domain
+一层一层递进确定要访问的地址.
+
+*** packet routing and delivery
+虽然link layer 在硬件层面讲接收的包按adddress 进行过滤, 但在system/application 中还是可以获得所有包裹信息.
+两个host 之间如果要传递信息, 就需要知道彼此的address.
+
+ip 定位到了一个网络, 但还没有定位到Host, 还需要将这个ip 转换到MAC 来进行传递信息, 所以创建了ARP protocol.
+发送一个广播请求, 被询问的IP host 报告自身的MAC 地址. 以此将physical address 和 ip address (virtual address) 
+链接起来. 这个arp 只能在local network 中进行.
+
+*** ip v4 hsoting
+host part + network part, network 标识网络, host 标识此网络下的主机.
+发送信息: 如果匹配了网络部分, 那么是同网络下的主机, 通过arp 找到mac 就发送, 如果没有匹配网络, 那么发送给
+默认的router ip, 同样, 通过arp 找到default router MAC 地址, 发送.
+
+通过network mask 来区分 host, network.
+
+简写形式: ip address / 24 后面的数字就表达前24bit 为网络位.
+
+** view from code(or storyboard)  to display
+[[file:img/iOS_load_and_display_root_view.png]]
