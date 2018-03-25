@@ -30,6 +30,11 @@
    - bind storyboard obj 和 class reference.
      - 可以使用asstance editor 通过ctrl drag 的方式
      - 可以在controller 中写入 @IBoutlet var varName: VarType! 之后再storyboard 中关联.
+
+#+BEGIN_QUOTE
+   NSObject 内还是可以继续包含NSObject, 并通过IB 的 control-drag 的方式建立关系.
+#+END_QUOTE
+
 ** IoC 控制反转
    将依赖对象的创建过程外移, 交由第三方来管理. 这种思路就是IoC, 反转表示当前对象创建的控制由原来在调用方
    转移到了第三方. storyboard 的这种对象注入方式就是IoC 的一种体现.
