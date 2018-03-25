@@ -23,17 +23,36 @@
 
   希望了解Cocoa 模式, 能将Cocoa 内部组件串联起来.
 
-** MVC
-  似乎这是一个没有什么可说的基本套路, 将代码进行功能隔离, 最大限度的重用Model, 此模式个人认为最大的原因
-  在于View 和 Model 的改变频率, 特别是View, 如此分割, 并隔绝View, Model 之间的依赖, 实现decouple.
+** MVC -> MVVM
+   根据功能划分: (MVC)
+   - user interface (view)                       :small
+   - user data (model)                           :small
+   - how to interact view and model (controller) :massive
 
-  三个角色里, controller的任务似乎最为繁重, 需要bind view中的控件, 需要校验传入数据, 需要更改格式,
-  而iOS 又一般具有多个层级, 那么一个controller 需要控制多个View, 可见, controller在View数量多时,
-  会变得很臃肿.
+   view 一般就是storyboard 或者 custom view code. model 就是一些struct 属性集合. 剩余工作都放在了
+   controller 中.在storyboard 环境下, view 和 controller 基本上就是个整体.
 
-  为了便于测试, 把数据处理(format, check) 之类工作转移到view 中, 这样, 单独提供view 和测试数据, 
-  即可测试.
+   MVC 中的数据流动: 
+   view - controller: >>>> event/delegate <<< own view object.
+   model - controller: >>>> KVO/notification/delegate <<<< own model (through helper functions?)
+   view - mdoel: none of data flow.
 
+   交集之处就是controller. 可见, controller 臃肿. 所以MVC 模式又被称为了massive view controller 模式.
+   why? controller 如同树根, 子叶多了, 子叶之间的信息传递和状态维护 都是通过这个中枢进行. 自然就臃肿.
+
+   一般, 每个view 都是依附于某个controller. 在Controller 中除了逻辑本身, 还附带了view presenting data
+   logic, 就是为view 提供显示数据的逻辑.
+   
+   将这部分关于view 显示数据转换的逻辑代码抽离出来, 就是一个view model. (就如同字面意思, 为view 提供的数据)
+   整体关系就变成了:
+   #+BEGIN_SRC 
+   view|controller <<<< >>>> view model <<<<<>>>> model
+   #+END_SRC
+
+   MVVN (model view, view, model)
+
+   - 将controller 关于view model 的部分抽离
+   - 便于测试 (其实就是测试view呈现的数据, 而不必构建controller)
 ** Foundamental Patterns (先挖坑, 慢慢填)
 *** Two-Stage<2018-02-25 Sun>
     将对象创建分为两个阶段: memory allocation, value initialization
