@@ -30,6 +30,14 @@
     view 根据自己content 来产生的size info, 例如lable 根据text 属性得到的size, UIImageView根据
     image size 得到的size, 这些content based size 就是intrinsic size, 而他会影响UI layout 的
     实际效果.
+
+    update: 具体就是autolayout engine 给出的size 与item 的 intrisic size 不相符合时, 如何选择?
+    设定engine size 为default size, intrisic size 为content size
+#+BEGIN_SRC 
+    content size > default size -> 压缩哪个item, 以把所有item 都塞进去.
+    content size < default size -> 拉伸哪个item, 以把真个container 塞满
+#+END_SRC
+
 *** content hugging 
     当view 提供的constraint 有冲突时, 可以设置其中的关键constraint priority 为optional 
     (< 1000), layout engine 就知道冲突时, 该break 哪个constriant
