@@ -282,5 +282,111 @@ host part + network part, network 标识网络, host 标识此网络下的主机
 
 简写形式: ip address / 24 后面的数字就表达前24bit 为网络位.
 
-** view from code(or storyboard)  to display
+*** view from code(or storyboard)  to display
 [[file:img/iOS_load_and_display_root_view.png]]
+
+** UIKit
+   element 的几个问题:
+   - 如何填充内容
+   - 如何控制样式
+   - 如何获取状态变化
+   - 如何handle 事件
+*** 显示文字: UILabel, UITextField
+    - text
+    - numberOfLines
+    - breakMode
+    - adjustFontSizeToFitWidth
+    - preferredMaxLayoutWidth
+    - user interaction: ---> resignFirstResponder
+    - allowEditingTextAttributes ----> editable with long press
+    - placeHolder --> attributedPlaceHolder
+    - boarderStyle
+    - delegation methods
+    - 有意思的exclusionPath 设置text 显示的排他区域, 文字包含图片的效果.
+*** 关于keyboard
+    Text 相关的控件在交互时会显示keyboard, 这个keyboard 的window 是独立于view tree的, 两者平行关系.
+    keyboard view 就是简单的覆盖当前view.会遮盖内容.
+    TODO: 将view 放置在一个UIScrollView, 这个scroll view 作为container, 键盘显示后, resize container
+    来解决这个问题.
+
+    事件:
+    - UIKeyboardWillShowNotifications { 获取最终frame }
+    - UIKeyboardDidShowNotifications
+    - UIKeyboardWillHideNotifications
+    - UIKeyboardDidHideNotifications
+    - UIKeyboardWillChangeFrameNotification
+    - UIKeyboardDidChangeFrameNotification
+*** user control UIControl
+    - UIControlState ---> normal, highlighted, selected 之类的状态区分.
+    - target - action pattern
+      #+BEGIN_SRC 
+      button.addTarget(target, action, event)
+      target: 接收event 触发消息的对象, 一般就是包含这个element view 的controller, 也就是self.
+      action: 如何handle 这个事件
+      event: 触发事件, UIControlEvent
+      #+END_SRC
+*** UISlider: float value (0, 1) UIControlEventValueChanged
+*** UISegmentControl {continue? }
+*** UIPickerView { dataSource, delegate }
+*** UISteper
+*** UIProgressView
+*** UIActivityIndicatorView
+*** UIImageView
+    @2x @3x ---> scale property: contentScaleFactor 默认根据屏幕选择.
+*** UIScrollView
+*** data flow back using storyboard with delegate
+    相比获取class type, 创建并显示, 使用deleagte 方式可以实现双向绑定, 使sub controller 持有
+    source view controller 的信息. 这样, unwind 之后, 持有原vc 的状态.
+
+    - define a protocol for unwindToSourceViewController
+    - add property in dst view controller
+    - set src view controller self to dst view controller's delegate
+    - perform segue
+    - when unwind, call delegate method to pass data back and dismiss current view controller.
+    - now, view turn back to source view controller, and got the passed data, keep the origin status as well.
+** set datasource and delegate through storyboard (quite simple!)
+    open Connection inspector panel, control drag to view controller
+#+BEGIN_QUOTE
+    注意是 drag 到controller 上, 如果drag 到需要设置dataSource 和 delegate 的控件上, 那么连接的就是
+    他的container view.
+
+    爆出: unrecognized selector error. 这就指明了哪个container view 并不是需要的delegate obj
+#+END_QUOTE
+** container view 
+*** UITableView
+    - register table view cell and dequeue cell.
+    - section
+    - supplementary view { header and footer }
+** user defined runtime attributes (Question Mark: TODO) 
+
+   由名字就可看出, 在IB 中设置attribtues, 在runtime 生效. 类型包含了: 
+   - Boolean
+   - Number
+   - String
+   - Color
+   - Image
+   - Nil
+   - LocalizedString
+   - Range
+   - Size
+   - Point
+
+   在interface builder 中拖拽了一个button, 对其设置runtime user defined attributes:
+
+   keypath: cornerRadius 类型: Number, value: 20
+   keypath: backgroundColor 类型: Color, value: pick color: blue
+   同时, 在attributes inspector 中设置button 的backgroundColor 为红色
+
+   runtime attributes 覆盖了button 在interface builder 的static settings, 这看起来很正常. 
+   
+   疑问: cornerRadius 并不是UIButton 的直接属性, 而是其layer 中的属性. 
+
+   查看文档, 这个特性就是通过NSKeyValueCoding (protocol?) 看名字就知道是个老物件, 点开setValue(forKey)
+   右侧赫然写着since iOS 2.0
+
+   根据reference link 进去: Key-Value Coding Programming Guide , 找到了set key 内部执行的process.
+   其中解释了只写cornerRadius 为何会被正确设置到layer.cornerRadius, 如果将keyPath 设置为abc.layer.cornerRadius
+   后, 久顺利得到了文档提供的setValue: for undefined key. 
+
+   问题就是, 如果此时, 在keyPath 后缀一个无意义的字符串, 比如keyPath: layer.cornerRadius3, 此时不报错误, 也不会
+   顺利设置属性值. 这在文档提供的寻值策略中走不通. 心存疑惑.
