@@ -7,7 +7,8 @@
       - [[https://github.com/vg0x00/log/blob/master/tech/mobile/iOS/qrcode_scanner.org][qrcode scanner in Swift]]<2018-03-06 Tue>
       - [[https://github.com/vg0x00/log/blob/master/tech/mobile/iOS/autolayout_content_hugging_and_compression_resistance.org][content_hugging_and_compression_resistance]]<2018-03-07 Wed>
       - [[https://github.com/vg0x00/log/blob/master/tech/mobile/iOS/dependency_injection_storyboard.org][dependency injection in Storyboard]]<2018-03-25 Sun>
-      - [[https://github.com/vg0x00/log/blob/master/tech/mobile/iOS/view_drawing_cycle.org][view display and life cycle]]<2018-03-26 Mon>
+      - [[https://github.com/vg0x00/log/blob/master/tech/mobile/iOS/view_drawing_cycle.org][view display and life cycle]]<2018-03-25 Sun>
+      - [[https://github.com/vg0x00/log/blob/master/tech/mobile/iOS/signature_digest_cert.org][signature? digest? certification?]]<2018-04-05 Thu>
   - lan
     - [[https://github.com/vg0x00/log/blob/master/tech/lan/swift/strong_weak_unowned.org][(Swift): strong_weak_unowned]]<2018-03-04 Sun>
   - db
@@ -19,3 +20,4 @@
     - [[https://github.com/vg0x00/log/blob/master/tech/others/org_mode.org][org mode guide]] <2018-02-01 Thu>
     - [[https://github.com/vg0x00/log/blob/master/tech/others/note.org][note]]<2018-02-22 Thu>
     - [[https://github.com/vg0x00/log/blob/master/tech/others/semantic_compression.org][semantic compression programming]]<2018-03-10 Sat>
+  - Blender
