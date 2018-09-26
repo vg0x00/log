@@ -11,6 +11,7 @@
       - [[https://github.com/vg0x00/log/blob/master/tech/mobile/iOS/signature_digest_cert.org][signature? digest? certification?]]<2018-04-05 Thu>
   - lan
     - [[https://github.com/vg0x00/log/blob/master/tech/lan/swift/strong_weak_unowned.org][(Swift): strong_weak_unowned]]<2018-03-04 Sun>
+	- [[https://github.com/vg0x00/log/blob/master/tech/lan/cpp/vs2017/vs2017_google_test/vs2017_google_test.md][(Cpp): vs2017 and Google test]]<2018-09-26 Wed>
   - db
   - net
   - sys
